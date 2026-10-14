@@ -1,0 +1,35 @@
+name: Source validation
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths: &a1
+      - "**/*.sh"
+      - "*.ps1"
+      - .github/workflows/**
+  pull_request:
+    paths: *a1
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Parse shell scripts without running installers
+        run: |
+          find . -name '*.sh' -print0 | while IFS= read -r -d '' script; do bash -n "$script" || exit 1; done
+      - name: Parse PowerShell source
+        shell: pwsh
+        run: |
+          $parseTokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path wmic.ps1), [ref]$parseTokens, [ref]$parseErrors) | Out-Null
+          if ($parseErrors.Count) { $parseErrors | ForEach-Object { Write-Error $_ }; exit 1 }

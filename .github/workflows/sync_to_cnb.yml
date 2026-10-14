@@ -1,7 +1,6 @@
 name: 同步到 CNB
 on:
   workflow_dispatch:
-  push:
 jobs:
   run:
     name: 同步到 CNB
@@ -16,3 +15,9 @@ jobs:
           GIT_USERNAME: cnb
           GIT_PASSWORD: ${{ secrets.CNB_TOKEN }}
           PUSH_ALL_REFS: false
+    timeout-minutes: 10
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false

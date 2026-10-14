@@ -1,9 +1,6 @@
 name: 运行主程序
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "reinstall.*"
 jobs:
   run:
     name: 运行主程序
@@ -47,3 +44,9 @@ jobs:
           # ${{ matrix.command }} wrong-os
           # ${{ matrix.command }} dd --img=https://github.com/
           # ${{ matrix.command }} windows --iso=https://github.com/ --image-name=abc
+    timeout-minutes: 30
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
